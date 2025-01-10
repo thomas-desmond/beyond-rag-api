@@ -42,17 +42,7 @@ export default {
 					content: 'You are a friendly assistant tasked with writing captivating product descriptions for an e-commerce website.',
 				},
 			];
-			const response = await env.AI.run(
-				'@cf/meta/llama-3.2-11b-vision-instruct',
-				{ prompt: prompt, messages: messages },
-				{
-					gateway: {
-						id: 'beyond-rag',
-						skipCache: false,
-						cacheTtl: 3360,
-					},
-				}
-			);
+			const response = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct', prompt, messages, );
 
 			return Response.json(response, { headers: { ...corsHeaders } });
 		}
