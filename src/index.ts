@@ -29,20 +29,20 @@ export default {
 			const criteria = requestBody.criteria;
 
 			const prompt = {
-				image: encodedImage,
-				prompt: `Write a single paragraph product description for the item in the image with a focus on ${criteria}. I'd like to be able to copy the output and paste it into a product description with no changes.`,
-			};
-			const messages = [
-				{
-					role: 'system',
-					content: 'You are a friendly assistant tasked with writing captivating product descriptions for an e-commerce website.',
-				},
-				{
-					role: 'user',
-					content: 'You are a friendly assistant tasked with writing captivating product descriptions for an e-commerce website.',
-				},
-			];
-			const response = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct', prompt, messages, );
+                image: encodedImage,
+                prompt: `Write a single paragraph product description for the item in the image with a focus on ${criteria}. I'd like to be able to copy the output and paste it into a product description with no changes.`,
+            };
+            const messages = [
+                {
+                    role: 'system',
+                    content: 'You are a friendly assistant tasked with writing captivating product descriptions for an e-commerce website.',
+                },
+                {
+                    role: 'user',
+                    content: 'You are a friendly assistant tasked with writing captivating product descriptions for an e-commerce website.',
+                },
+            ];
+            const response = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct', prompt, messages);
 
 			return Response.json(response, { headers: { ...corsHeaders } });
 		}
@@ -52,19 +52,11 @@ export default {
 			const requestBody = (await request.json()) as { description: string };
 			const description = requestBody.description;
 
-			const prompt = `Take the description and generate 3 instagram posts based on it. Here is the description: ${description}`;
+			const input: AiTextGenerationInput = {
+				prompt: `Take the description and generate 3 instagram posts based on it. Here is the description: ${description}`
+			}
 
-			const response = await env.AI.run(
-				'@cf/meta/llama-3.2-1b-instruct',
-				{ prompt: prompt },
-				{
-					gateway: {
-						id: 'beyond-rag',
-						skipCache: false,
-						cacheTtl: 3360,
-					},
-				}
-			);
+			const response = await env.AI.run('@cf/meta/llama-3.2-1b-instruct', input);
 
 			return Response.json(response, { headers: { ...corsHeaders } });
 		}
