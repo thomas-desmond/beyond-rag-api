@@ -24,25 +24,42 @@ export default {
 
 		// Handle requests to the `/image-description` endpoint
 		if (url.pathname === '/image-description' && request.method === 'POST') {
-			const requestBody = (await request.json()) as { image: string; criteria: string };
+			const requestBody = (await request.json()) as { image: string };
 			const encodedImage = requestBody.image;
-			const criteria = requestBody.criteria;
 
-			const prompt = {
-                image: encodedImage,
-                prompt: `Write a single paragraph product description for the item in the image with a focus on ${criteria}. I'd like to be able to copy the output and paste it into a product description with no changes.`,
-            };
-            const messages = [
-                {
-                    role: 'system',
-                    content: 'You are a friendly assistant tasked with writing captivating product descriptions for an e-commerce website.',
-                },
-                {
-                    role: 'user',
-                    content: 'You are a friendly assistant tasked with writing captivating product descriptions for an e-commerce website.',
-                },
-            ];
-            const response = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct', prompt, messages);
+			const input = {
+				messages: [
+					{
+						role: 'system',
+						content:
+							'You are a product marketing assistant specializing in generating concise, single-paragraph product descriptions. Your responses must be limited to an engaging, vivid, and persuasive product description that highlights the key features and benefits of the product depicted in the provided image. Avoid adding any extra information, such as explanations, background, or unrelated commentary',
+					},
+					{
+						role: 'assistant',
+						content:
+							'Based on the provided image, craft a single-paragraph product description that is vivid, persuasive, and concise. Highlight the product’s key features and benefits in an engaging tone. Ensure your response is limited to the description only, with no additional context, explanations, or unrelated details.',
+					},
+					{
+						role: 'user',
+						content: `Examine the provided image and generate a single-paragraph product description. Focus on creating a concise, engaging description that highlights the product's standout features and benefits. Do not include any additional information or commentary—only the description itself.`,
+					},
+				],
+				image: encodedImage,
+			};
+			const response = await env.AI.run(
+				'@cf/meta/llama-3.2-11b-vision-instruct',
+				{
+					image: encodedImage,
+					messages: input.messages,
+				},
+				{
+					gateway: {
+						id: 'beyond-rag',
+						skipCache: false,
+						cacheTtl: 3360,
+					},
+				}
+			);
 
 			return Response.json(response, { headers: { ...corsHeaders } });
 		}
@@ -53,13 +70,20 @@ export default {
 			const description = requestBody.description;
 
 			const input: AiTextGenerationInput = {
-				prompt: `Take the description and generate 3 instagram posts based on it. Here is the description: ${description}`
-			}
+				prompt: `Take the description and generate 3 instagram posts based on it. Here is the description: ${description}`,
+			};
 
-			const response = await env.AI.run('@cf/meta/llama-3.2-1b-instruct', input);
+			const response = await env.AI.run('@cf/meta/llama-3.2-1b-instruct', input, {
+				gateway: {
+					id: 'beyond-rag',
+					skipCache: false,
+					cacheTtl: 3360,
+				},
+			});
 
 			return Response.json(response, { headers: { ...corsHeaders } });
 		}
+
 		return new Response('Not Found', { status: 404 });
 	},
 } satisfies ExportedHandler<Env>;
