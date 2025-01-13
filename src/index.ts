@@ -24,32 +24,14 @@ export default {
 
 		// Handle requests to the `/image-description` endpoint
 		if (url.pathname === '/image-description' && request.method === 'POST') {
-			const requestBody = (await request.json()) as { image: string };
+			const requestBody = (await request.json()) as { image: number[] };
 			const encodedImage = requestBody.image;
 
-			const input = {
-				messages: [
-					{
-						role: 'system',
-						content:
-							'You are a product marketing assistant specializing in generating concise, single-paragraph product descriptions. Your responses must be limited to an engaging, vivid, and persuasive product description that highlights the key features and benefits of the product depicted in the provided image. Avoid adding any extra information, such as explanations, background, or unrelated commentary',
-					},
-					{
-						role: 'assistant',
-						content:
-							'Based on the provided image, craft a single-paragraph product description that is vivid, persuasive, and concise. Highlight the product’s key features and benefits in an engaging tone. Ensure your response is limited to the description only, with no additional context, explanations, or unrelated details.',
-					},
-					{
-						role: 'user',
-						content: `Examine the provided image and generate a single-paragraph product description. Focus on creating a concise, engaging description that highlights the product's standout features and benefits. Do not include any additional information or commentary—only the description itself.`,
-					},
-				],
-			};
 			const response = await env.AI.run(
-				'@cf/meta/llama-3.2-11b-vision-instruct',
+				'@cf/meta/llama-3.2-11b-vision-instruct' as keyof AiModels,
 				{
 					image: encodedImage,
-					messages: input.messages,
+					prompt: 'Generate a single-paragraph product description based on the provided image.',
 				},
 				{
 					gateway: {
