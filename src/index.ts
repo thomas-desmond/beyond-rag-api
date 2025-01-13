@@ -44,7 +44,6 @@ export default {
 						content: `Examine the provided image and generate a single-paragraph product description. Focus on creating a concise, engaging description that highlights the product's standout features and benefits. Do not include any additional information or commentary—only the description itself.`,
 					},
 				],
-				image: encodedImage,
 			};
 			const response = await env.AI.run(
 				'@cf/meta/llama-3.2-11b-vision-instruct',
