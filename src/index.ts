@@ -37,7 +37,7 @@ export default {
 					gateway: {
 						id: 'beyond-rag',
 						skipCache: false,
-						cacheTtl: 3360,
+						cacheTtl: 300,
 					},
 				}
 			);
@@ -58,7 +58,7 @@ export default {
 				gateway: {
 					id: 'beyond-rag',
 					skipCache: false,
-					cacheTtl: 3360,
+					cacheTtl: 300,
 				},
 			});
 
