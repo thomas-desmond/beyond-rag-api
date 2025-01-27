@@ -27,8 +27,7 @@ export default {
 			const requestBody = (await request.json()) as { image: number[] };
 			const encodedImage = requestBody.image;
 
-			const response = await env.AI.run(
-				'@cf/meta/llama-3.2-11b-vision-instruct' as keyof AiModels,
+			const response = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct' as keyof AiModels,
 				{
 					image: encodedImage,
 					prompt: 'Generate a single-paragraph product description based on the provided image.',
