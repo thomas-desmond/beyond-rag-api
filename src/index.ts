@@ -14,17 +14,18 @@
 // Supported languages
 type SupportedLanguage = 'en' | 'es' | 'pt';
 
-// Base prompts in English with language instruction
+// Language-specific prompts
 const PROMPTS = {
-	imageDescription: 'Generate a single-paragraph product description based on the provided image.',
-	socialPosts: 'Take the description and generate 3 instagram posts based on it. Here is the description:'
-};
-
-// Language names for instruction
-const LANGUAGE_NAMES = {
-	en: 'English',
-	es: 'Spanish',
-	pt: 'Portuguese'
+	imageDescription: {
+		en: 'Generate a single-paragraph product description based on the provided image.',
+		es: 'Genera una descripción de producto de un solo párrafo basada en la imagen proporcionada.',
+		pt: 'Gere uma descrição de produto de um único parágrafo baseada na imagem fornecida.'
+	},
+	socialPosts: {
+		en: 'Take the description and generate 3 instagram posts based on it. Here is the description:',
+		es: 'Toma la descripción y genera 3 publicaciones de Instagram basadas en ella. Aquí está la descripción:',
+		pt: 'Pegue a descrição e gere 3 posts do Instagram baseados nela. Aqui está a descrição:'
+	}
 };
 
 /**
@@ -60,12 +61,7 @@ export default {
 			// Get language from Accept-Language header
 			const acceptLanguage = request.headers.get('Accept-Language');
 			const language = getLanguageFromHeader(acceptLanguage);
-			const languageName = LANGUAGE_NAMES[language];
-
-			// Build prompt with language integrated naturally
-			const prompt = language === 'en'
-				? PROMPTS.imageDescription
-				: `Generate a single-paragraph product description in ${languageName} based on the provided image.`;
+			const prompt = PROMPTS.imageDescription[language];
 
 			const response = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct' as keyof AiModels,
 				{
@@ -92,12 +88,7 @@ export default {
 			// Get language from Accept-Language header
 			const acceptLanguage = request.headers.get('Accept-Language');
 			const language = getLanguageFromHeader(acceptLanguage);
-			const languageName = LANGUAGE_NAMES[language];
-
-			// Build prompt with language integrated naturally
-			const prompt = language === 'en'
-				? `${PROMPTS.socialPosts} ${description}`
-				: `Take the description and generate 3 instagram posts in ${languageName} based on it. Here is the description: ${description}`;
+			const prompt = `${PROMPTS.socialPosts[language]} ${description}`;
 
 			const input: AiTextGenerationInput = {
 				prompt: prompt,
