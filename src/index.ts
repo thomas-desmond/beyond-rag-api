@@ -11,6 +11,36 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
+// Supported languages
+type SupportedLanguage = 'en' | 'es' | 'pt';
+
+// Base prompts in English with language instruction
+const PROMPTS = {
+	imageDescription: 'Generate a single-paragraph product description based on the provided image.',
+	socialPosts: 'Take the description and generate 3 instagram posts based on it. Here is the description:'
+};
+
+// Language names for instruction
+const LANGUAGE_NAMES = {
+	en: 'English',
+	es: 'Spanish',
+	pt: 'Portuguese'
+};
+
+/**
+ * Get language from Accept-Language header (expects en, es, or pt)
+ */
+function getLanguageFromHeader(acceptLanguage: string | null): SupportedLanguage {
+	if (!acceptLanguage) return 'en';
+	
+	const lang = acceptLanguage.toLowerCase();
+	if (lang === 'es' || lang === 'pt') {
+		return lang;
+	}
+	
+	return 'en'; // Default to English
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const corsHeaders = getCorsHeaders();
@@ -26,11 +56,21 @@ export default {
 		if (url.pathname === '/image-description' && request.method === 'POST') {
 			const requestBody = (await request.json()) as { image: number[] };
 			const encodedImage = requestBody.image;
+			
+			// Get language from Accept-Language header
+			const acceptLanguage = request.headers.get('Accept-Language');
+			const language = getLanguageFromHeader(acceptLanguage);
+			const languageName = LANGUAGE_NAMES[language];
+			
+			// Build prompt with language instruction
+			const prompt = language === 'en' 
+				? PROMPTS.imageDescription
+				: `${PROMPTS.imageDescription} Please respond in ${languageName}.`;
 
 			const response = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct' as keyof AiModels,
 				{
 					image: encodedImage,
-					prompt: 'Generate a single-paragraph product description based on the provided image.',
+					prompt: prompt,
 				},
 				{
 					gateway: {
@@ -44,13 +84,24 @@ export default {
 			return Response.json(response, { headers: { ...corsHeaders } });
 		}
 
-		// Handle requests to the `/image-description` endpoint
+		// Handle requests to the `/social-posts` endpoint
 		if (url.pathname === '/social-posts' && request.method === 'POST') {
 			const requestBody = (await request.json()) as { description: string };
 			const description = requestBody.description;
+			
+			// Get language from Accept-Language header
+			const acceptLanguage = request.headers.get('Accept-Language');
+			const language = getLanguageFromHeader(acceptLanguage);
+			const languageName = LANGUAGE_NAMES[language];
+			
+			// Build prompt with language instruction
+			const basePrompt = `${PROMPTS.socialPosts} ${description}`;
+			const prompt = language === 'en' 
+				? basePrompt
+				: `${basePrompt} Please respond in ${languageName}.`;
 
 			const input: AiTextGenerationInput = {
-				prompt: `Take the description and generate 3 instagram posts based on it. Here is the description: ${description}`,
+				prompt: prompt,
 			};
 
 			const response = await env.AI.run('@cf/meta/llama-3.2-1b-instruct', input, {
